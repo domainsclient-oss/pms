@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { Eye, EyeOff, LogIn } from "lucide-react";
-import { clientAuth } from "@/lib/firebase-client";
+import { getClientAuth } from "@/lib/firebase-client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,7 +17,7 @@ export default function LoginPage() {
     setSigningIn(true);
     setError("");
     try {
-      const credential = await signInWithEmailAndPassword(clientAuth, email.trim(), password);
+      const credential = await signInWithEmailAndPassword(getClientAuth(), email.trim(), password);
       const idToken = await credential.user.getIdToken();
       const response = await fetch("/api/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idToken }) });
       if (!response.ok) throw new Error("Session creation failed");
