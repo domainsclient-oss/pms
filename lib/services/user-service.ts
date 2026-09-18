@@ -21,12 +21,11 @@ export async function getUser(id: string) {
 }
 
 export async function createUser(user: Omit<User, "id">, password: string) {
-  const auth = getAdminAuth();
-  const authUser = await auth.createUser({ email: user.email, password, displayName: user.name });
+  const authUser = await getAdminAuth().createUser({ email: user.email, password, displayName: user.name });
   try {
     await usersCollection().doc(authUser.uid).set({ ...user, createdAt: FieldValue.serverTimestamp() });
   } catch (error) {
-    await auth.deleteUser(authUser.uid);
+    await getAdminAuth().deleteUser(authUser.uid);
     throw error;
   }
   return { id: authUser.uid, ...user };
