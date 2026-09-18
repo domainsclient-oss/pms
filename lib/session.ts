@@ -1,11 +1,11 @@
 import { cookies } from "next/headers";
-import { auth } from "@/lib/firebase-admin";
+import { getAdminAuth } from "@/lib/firebase-admin";
 
 export const SESSION_COOKIE = "session";
 const SESSION_MAX_AGE_MS = 5 * 24 * 60 * 60 * 1000;
 
 export async function createSession(idToken: string) {
-  const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn: SESSION_MAX_AGE_MS });
+  const sessionCookie = await getAdminAuth().createSessionCookie(idToken, { expiresIn: SESSION_MAX_AGE_MS });
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, sessionCookie, {
     httpOnly: true,
@@ -22,8 +22,9 @@ export async function destroySession() {
   cookieStore.delete(SESSION_COOKIE);
   if (!sessionCookie) return;
   try {
-    const decoded = await auth.verifySessionCookie(sessionCookie);
-    await auth.revokeRefreshTokens(decoded.uid);
+    const adminAuth = getAdminAuth();
+    const decoded = await adminAuth.verifySessionCookie(sessionCookie);
+    await adminAuth.revokeRefreshTokens(decoded.uid);
   } catch {
     // Cookie was already invalid; nothing to revoke.
   }
@@ -34,7 +35,7 @@ export async function getSession() {
   const sessionCookie = cookieStore.get(SESSION_COOKIE)?.value;
   if (!sessionCookie) return null;
   try {
-    return await auth.verifySessionCookie(sessionCookie, true);
+    return await getAdminAuth().verifySessionCookie(sessionCookie, true);
   } catch {
     return null;
   }

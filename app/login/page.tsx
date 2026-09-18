@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import { clientAuth } from "@/lib/firebase-client";
 
 export default function LoginPage() {
-  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +21,7 @@ export default function LoginPage() {
       const idToken = await credential.user.getIdToken();
       const response = await fetch("/api/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idToken }) });
       if (!response.ok) throw new Error("Session creation failed");
-      const next = searchParams.get("next");
+      const next = new URLSearchParams(window.location.search).get("next");
       window.location.href = next && next.startsWith("/") ? next : "/";
     } catch {
       setError("Invalid email or password.");
