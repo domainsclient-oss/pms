@@ -1,5 +1,5 @@
 import { FieldValue, type DocumentSnapshot } from "firebase-admin/firestore";
-import { firestore } from "@/lib/firebase-admin";
+import { getFirestoreDb } from "@/lib/firebase-admin";
 
 export type ActivityType = "project" | "user" | "session";
 
@@ -14,7 +14,7 @@ export interface Activity {
 }
 
 type ActivityData = Omit<Activity, "id" | "createdAt"> & { createdAt?: { toDate?: () => Date } };
-const activitiesCollection = firestore.collection("activities");
+const activitiesCollection = () => getFirestoreDb().collection("activities");
 
 function activityFromSnapshot(snapshot: DocumentSnapshot): Activity {
   const data = snapshot.data() as ActivityData;
@@ -30,10 +30,10 @@ function activityFromSnapshot(snapshot: DocumentSnapshot): Activity {
 }
 
 export async function listActivities() {
-  const snapshot = await activitiesCollection.orderBy("createdAt", "desc").limit(30).get();
+  const snapshot = await activitiesCollection().orderBy("createdAt", "desc").limit(30).get();
   return snapshot.docs.map(activityFromSnapshot);
 }
 
 export async function logActivity(activity: Omit<Activity, "id" | "createdAt">) {
-  await activitiesCollection.add({ ...activity, createdAt: FieldValue.serverTimestamp() });
+  await activitiesCollection().add({ ...activity, createdAt: FieldValue.serverTimestamp() });
 }
