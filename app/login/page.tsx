@@ -20,11 +20,19 @@ export default function LoginPage() {
       const credential = await signInWithEmailAndPassword(getClientAuth(), email.trim(), password);
       const idToken = await credential.user.getIdToken();
       const response = await fetch("/api/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idToken }) });
-      if (!response.ok) throw new Error("Session creation failed");
+      if (!response.ok) throw new Error("Server session configuration failed.");
       const next = new URLSearchParams(window.location.search).get("next");
       window.location.href = next && next.startsWith("/") ? next : "/";
-    } catch {
-      setError("Invalid email or password.");
+    } catch (error) {
+      console.error("Sign-in failed", error);
+      const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
+      setError(code === "auth/invalid-api-key" || (error instanceof Error && error.message === "Firebase client configuration is missing.")
+        ? "Firebase is not configured for this deployment."
+        : code === "auth/unauthorized-domain"
+          ? "This Vercel domain is not authorized in Firebase Authentication."
+          : error instanceof Error && error.message === "Server session configuration failed."
+            ? "The server Firebase credentials are not configured correctly."
+          : "Invalid email or password.");
       setSigningIn(false);
     }
   };
