@@ -21,7 +21,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Failed to create session", error);
-    return NextResponse.json({ error: "Unable to create session." }, { status: 401 });
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: "Unable to create session.", debug: message }, { status: 401 });
   }
 }
 
