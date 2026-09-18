@@ -8,6 +8,12 @@ function requiredEnv(name: string) {
   return value;
 }
 
+function getPrivateKey() {
+  const value = requiredEnv("FIREBASE_PRIVATE_KEY").trim();
+  const unquoted = value.replace(/^(["'])|(["'])$/g, "");
+  return unquoted.replace(/\\n/g, "\n").replace(/\\r/g, "\r");
+}
+
 let firebaseAdminApp: App | undefined;
 
 function getFirebaseAdminApp() {
@@ -16,7 +22,7 @@ function getFirebaseAdminApp() {
     credential: cert({
       projectId: requiredEnv("FIREBASE_PROJECT_ID"),
       clientEmail: requiredEnv("FIREBASE_CLIENT_EMAIL"),
-      privateKey: requiredEnv("FIREBASE_PRIVATE_KEY").replace(/\\n/g, "\n"),
+      privateKey: getPrivateKey(),
     }),
   });
   return firebaseAdminApp;
